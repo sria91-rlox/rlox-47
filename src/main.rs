@@ -5,7 +5,7 @@ use std::{
 };
 
 use errors::LoxError;
-use lexer::{Token};
+use lexer::Token;
 
 mod errors;
 mod lexer;
@@ -13,11 +13,14 @@ mod lexer;
 fn main() {
     let mut args = args();
 
-    if args.len() > 1 {
+    if args.len() > 2 {
         println!("Usage: rlox [script]");
-    } else if args.len() == 1 {
-        run_file(args.next().unwrap().as_str()).unwrap();
+    } else if args.len() == 2 {
+        let path = args.next().unwrap();
+        println!("Running: {}", path);
+        run_file(path.as_str()).unwrap();
     } else {
+        println!("rlox prompt:");
         run_prompt().unwrap();
     }
 }
@@ -27,10 +30,7 @@ fn run_file(path: &str) -> std::io::Result<()> {
     let mut source = String::new();
     file.read_to_string(&mut source)?;
 
-    if let Err(err) = run(&source){
-        println!("{}", err);
-    }
-    
+    run(&source);
     Ok(())
 }
 
@@ -48,15 +48,15 @@ fn run_prompt() -> std::io::Result<()> {
         i.read_line(&mut line)?;
 
         if !line.is_empty() {
-            if let Err(err) = run(&line){
-                println!("{}", err);
-            }
+            run(&line);
         }
     }
 }
 
-fn run(source: &str) -> Result<(), LoxError>{
-    let tokens = Token::scan_tokens(source)?;
-
-    Ok(())
+fn run(source: &str) {
+    if let Err(errors) = Token::scan_tokens(source) {
+        for err in &errors {
+            println!("{}", err);
+        }
+    }
 }
